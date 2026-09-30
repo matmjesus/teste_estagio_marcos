@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz PROEJA - Serviços Jurídicos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between selection:bg-amber-100">
+
+  <!-- Cabeçalho -->
+  <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-10">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="bg-amber-400 text-indigo-950 p-2 rounded-lg font-bold text-lg leading-none">
+          ⚖️
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold leading-tight">Serviços Jurídicos</h1>
+          <p class="text-xs text-indigo-200">PROEJA • Noturno</p>
+        </div>
+      </div>
+      <div id="counter-badge" class="bg-indigo-800 text-indigo-100 text-xs font-semibold px-3 py-1 rounded-full border border-indigo-700">
+        1 / 20
+      </div>
+    </div>
+    <!-- Barra de Progresso -->
+    <div class="w-full bg-indigo-950 h-1.5">
+      <div id="progress-bar" class="bg-amber-400 h-1.5 transition-all duration-300" style="width: 5%;"></div>
+    </div>
+  </header>
+
+  <!-- Conteúdo Principal -->
+  <main class="max-w-3xl w-full mx-auto p-4 sm:p-6 flex-grow flex flex-col justify-center">
+
+    <!-- Card da Pergunta -->
+    <div id="quiz-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-7 transition-all">
+      <span class="inline-block bg-indigo-50 text-indigo-700 text-xs font-semibold px-2.5 py-1 rounded-md mb-3">
+        Questão Prática
+      </span>
+      <h2 id="question-text" class="text-lg sm:text-xl font-semibold text-slate-900 mb-5 leading-snug">
+        Carregando pergunta...
+      </h2>
+
+      <!-- Opções de Resposta -->
+      <div id="options-container" class="space-y-3 mb-6">
+        <!-- Opções geradas via JS -->
+      </div>
+
+      <!-- Caixa de Explicação / Feedback -->
+      <div id="explanation-box" class="hidden p-4 rounded-xl text-sm leading-relaxed mb-6 border">
+        <!-- Feedback via JS -->
+      </div>
+
+      <!-- Navegação -->
+      <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+        <button id="prev-btn" onclick="prevQuestion()" class="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+          ← Anterior
+        </button>
+        <button id="next-btn" onclick="nextQuestion()" class="px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm transition-all flex items-center gap-1">
+          Avançar →
+        </button>
+      </div>
+    </div>
+
+    <!-- Tela Final de Resultados com Nota -->
+    <div id="result-card" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 text-center">
+      <div class="text-5xl mb-3">🎓</div>
+      <h2 class="text-2xl font-bold text-slate-900 mb-1">Quiz Concluído!</h2>
+      <p class="text-slate-600 text-sm mb-6">Confira abaixo o resultado do seu aproveitamento pedagógico.</p>
+      
+      <div class="bg-indigo-50 rounded-2xl p-6 mb-6 max-w-md mx-auto border border-indigo-100">
+        <span class="text-xs uppercase tracking-wider font-bold text-indigo-600 block mb-1">Nota do Estudante</span>
+        <div id="final-grade" class="text-4xl font-black text-indigo-900 mb-1">10,0 / 10,0</div>
+        <div id="final-score" class="text-xs font-semibold text-indigo-700 mb-4">Acertos: 20 de 20 questões</div>
+        
+        <div class="bg-white p-4 rounded-xl border border-indigo-100 text-left">
+          <span class="text-xs font-bold text-slate-500 uppercase block mb-1">Avaliação do Desempenho:</span>
+          <p id="final-feedback" class="text-xs text-slate-700 leading-relaxed font-medium">
+            Carregando avaliação...
+          </p>
+        </div>
+      </div>
+
+      <button onclick="restartQuiz()" class="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm transition-all shadow-md">
+        🔄 Refazer Quiz
+      </button>
+    </div>
+
+  </main>
+
+  <!-- Rodapé -->
+  <footer class="bg-slate-200 text-slate-500 text-center py-3 text-xs border-t border-slate-300">
+    <p>Curso Técnico em Serviços Jurídicos • Educação de Jovens e Adultos (PROEJA)</p>
+  </footer>
+
+  <script>
+    const questions = [
+      {
+        question: "1. Qual é a função principal do Técnico em Serviços Jurídicos no dia a dia profissional?",
+        options: [
+          "Representar clientes e fazer sustentações orais nos tribunais.",
+          "Apoiar rotinas administrativas, gestão documental, atendimento e apoio cartorário.",
+          "Ditar sentenças judiciais e assinar despachos finais em processos.",
+          "Elaborar e aprovar novas leis no Congresso Nacional."
+        ],
+        correct: 1,
+        explanation: "O técnico atua no suporte administrativo, contratual e operacional das rotinas jurídicas, sem realizar atos privativos da advocacia."
+      },
+      {
+        question: "2. Segundo a Lei do Estágio (Lei 11.788/08), qual a carga horária diária máxima para estudantes de curso técnico?",
+        options: [
+          "6 horas diárias (30 horas semanais).",
+          "8 horas diárias e 44 horas semanais.",
+          "10 horas diárias.",
+          "Não existe limite de horário estabelecido em lei."
+        ],
+        correct: 0,
+        explanation: "A legislação estabelece o limite de 6 horas diárias e 30 horas semanais para garantir a compatibilidade com os estudos."
+      },
+      {
+        question: "3. Qual documento oficial formaliza a parceria entre o estudante, a instituição de ensino e o local de estágio?",
+        options: [
+          "Carteira de Trabalho e Previdência Social (CTPS).",
+          "Termo de Compromisso de Estágio (TCE).",
+          "Certidão de Registro Civil.",
+          "Contrato de Prestação de Serviços Autônomos."
+        ],
+        correct: 1,
+        explanation: "O Termo de Compromisso de Estágio (TCE) é o documento legal que vincula o aluno, a escola e a concedente."
+      },
+      {
+        question: "4. No ambiente jurídico moderno, o que significa a sigla PJe?",
+        options: [
+          "Processo Judicial Eletrônico.",
+          "Protocolo Jurídico do Estado.",
+          "Programa de Justiça Especial.",
+          "Petição Jurídica de Execução."
+        ],
+        correct: 0,
+        explanation: "O PJe é o sistema informatizado utilizado pelo Poder Judiciário para a tramitação de processos digitais."
+      },
+      {
+        question: "5. O técnico em serviços jurídicos recém-formado pode assinar uma petição inicial sozinho?",
+        options: [
+          "Sim, em qualquer situação se tiver concluído o curso.",
+          "Não, pois a assinatura de petições é ato privativo de advogado inscrito na OAB.",
+          "Sim, desde que o valor da causa seja pequeno.",
+          "Sim, se o cliente autorizar por escrito."
+        ],
+        correct: 1,
+        explanation: "A elaboração e assinatura de peças processuais judiciais exige inscrição regular na OAB como advogado."
+      },
+      {
+        question: "6. O que é uma 'Certidão' emitida por um Cartório ou Órgão Público?",
+        options: [
+          "Um rascunho de contrato sem validade jurídica.",
+          "Um documento oficial que declara ou atesta a veracidade de um fato registrado.",
+          "Um recibo simples de pagamento de compras.",
+          "Um documento particular assinado apenas por duas testemunhas."
+        ],
+        correct: 1,
+        explanation: "A certidão tem fé pública e comprova a existência de um registro ou fato formal perante a sociedade."
+      },
+      {
+        question: "7. No direito, o que chamamos de 'Jurisprudência'?",
+        options: [
+          "O conjunto de decisões e interpretações repetidas dos tribunais sobre um mesmo tema.",
+          "O texto exato aprovado pela Assembleia Legislativa.",
+          "Um dicionário de termos antigos do latim.",
+          "O depoimento pessoal prestado por uma testemunha em audiência."
+        ],
+        correct: 0,
+        explanation: "Jurisprudência é a orientação reiterada dos tribunais na aplicação das leis aos casos concretos."
+      },
+      {
+        question: "8. Qual a função central do órgão conhecido como PROCON?",
+        options: [
+          "Fiscalizar o cumprimento de penas em presídios.",
+          "Promover a defesa e a proteção dos direitos do consumidor.",
+          "Registrar imóveis e escrituras públicas de compra e venda.",
+          "Emitir carteira de trabalho e vistos internacionais."
+        ],
+        correct: 1,
+        explanation: "O PROCON atua na mediação de conflitos entre consumidores e fornecedores de produtos/serviços."
+      },
+      {
+        question: "9. Ao organizar uma pasta de documentos em ordem cronológica, qual é o critério adotado?",
+        options: [
+          "Ordem alfabética do nome das pessoas citadas.",
+          "Disposição pelas datas dos documentos, do mais antigo para o mais recente.",
+          "Tamanho do papel ou quantidade de páginas.",
+          "Ordem de relevância ou valor financeiro."
+        ],
+        correct: 1,
+        explanation: "A ordem cronológica organiza os fatos e documentos pela linha do tempo (datas de emissão/recebimento)."
+      },
+      {
+        question: "10. O que significa manter o 'Sigilo Profissional' na rotina de estágio?",
+        options: [
+          "Guardar segredo e não divulgar informações privadas e dados dos clientes ou processos.",
+          "Comentar detalhes dos casos nas redes sociais sem citar nomes.",
+          "Guardar os arquivos no computador pessoal sem senha de acesso.",
+          "Compartilhar informações com amigos desde que seja em conversas informais."
+        ],
+        correct: 0,
+        explanation: "A ética profissional exige o respeito absoluto à privacidade e à confidencialidade dos dados das partes."
+      },
+      {
+        question: "11. O estágio curricular supervisionado tem como objetivo principal:",
+        options: [
+          "Substituir funcionários efetivos para reduzir custos.",
+          "Proporcionar o aprendizado prático e a integração ao mundo do trabalho.",
+          "Cumprir um requisito apenas formal sem necessidade de presença real.",
+          "Garantir estabilidade de emprego ao estudante."
+        ],
+        correct: 1,
+        explanation: "O estágio é um ato educativo escolar supervisionado que visa preparar o estudante para a prática da profissão."
+      },
+      {
+        question: "12. Qual a finalidade da LGPD (Lei Geral de Proteção de Dados - Lei 13.709/18)?",
+        options: [
+          "Regulamentar os preços de serviços bancários no país.",
+          "Proteger os direitos fundamentais de liberdade e privacidade no tratamento de dados pessoais.",
+          "Garantir desconto na compra de computadores para estudantes.",
+          "Organizar as regras do trânsito nas rodovias federais."
+        ],
+        correct: 1,
+        explanation: "A LGPD define regras sobre a coleta, armazenamento e uso de dados pessoais por empresas e órgãos públicos."
+      },
+      {
+        question: "13. O que é uma 'Minuta' na elaboração de documentos jurídicos ou administrativos?",
+        options: [
+          "Um documento finalizado que não pode mais sofrer alterações.",
+          "Um rascunho ou versão preliminar do texto para revisão e aprovação.",
+          "Uma taxa cobrada pelos cartórios para protocolo rápido.",
+          "Um resumo que deve ter no máximo uma página."
+        ],
+        correct: 1,
+        explanation: "Minuta é a versão inicial de um contrato, requerimento ou documento criado para ser revisado antes da versão final."
+      },
+      {
+        question: "14. No Direito do Trabalho, o que caracteriza o 'Aviso Prévio'?",
+        options: [
+          "A comunicação antecipada da intenção de rescindir o contrato de trabalho.",
+          "O convite para a festa de confraternização do final do ano.",
+          "O comunicado sobre o pagamento da primeira parcela do 13º salário.",
+          "A notificação enviada pelo banco avisando sobre o saldo de FGTS."
+        ],
+        correct: 0,
+        explanation: "O aviso prévio garante que nem o empregador nem o empregado sejam pegos de surpresa pela demissão ou pedido de demissão."
+      },
+      {
+        question: "15. Qual é o foco principal dos Juizados Especiais Cíveis (conhecidos como Juizados de Pequenas Causas)?",
+        options: [
+          "Analisar crimes de grande complexidade com julgamentos longos.",
+          "Buscar a conciliação rápida e a solução simples de causas de menor complexidade.",
+          "Atender exclusivamente grandes corporações e empresas multinacionais.",
+          "Emitir certidões de nascimento e passaportes."
+        ],
+        correct: 1,
+        explanation: "Os Juizados Especiais pautam-se pelos princípios da informalidade, simplicidade, celeridade e conciliação."
+      },
+      {
+        question: "16. Qual entidade é responsável por fiscalizar e regulamentar o exercício da advocacia no Brasil?",
+        options: [
+          "MEC (Ministério da Educação).",
+          "OAB (Ordem dos Advogados do Brasil).",
+          "CREA (Conselho Regional de Engenharia).",
+          "Procon."
+        ],
+        correct: 1,
+        explanation: "A OAB regulamenta e fiscaliza os direitos, deveres e a conduta ética dos advogados inscritos."
+      },
+      {
+        question: "17. O que significa fazer o 'Protocolo' de um documento ou petição?",
+        options: [
+          "Registrar formalmente a entrega do documento junto ao órgão competente ou tribunal.",
+          "Arquivar a folha na lixeira de documentos descartáveis.",
+          "Enviar uma cópia por mensagem de texto informal.",
+          "Guardar o papel dentro da gaveta sem carimbar."
+        ],
+        correct: 0,
+        explanation: "O protocolo gera a comprovação oficial (com data e hora) de que o documento foi entregue e recebido."
+      },
+      {
+        question: "18. O que é um 'Contrato de Adesão'?",
+        options: [
+          "Contrato cujas cláusulas são elaboradas unilateralmente, cabendo à outra parte aceitar ou não em bloco.",
+          "Um acordo falado entre amigos sem qualquer documento impresso.",
+          "Um contrato negociado linha por linha ao longo de vários meses.",
+          "A ficha de matrícula no curso escolar."
+        ],
+        correct: 0,
+        explanation: "Nos contratos de adesão (como de internet ou energia), o consumidor aceita as condições pré-estabelecidas."
+      },
+      {
+        question: "19. Qual a principal atribuição de um Cartório de Registro Civil de Pessoas Naturais?",
+        options: [
+          "Registrar nascimentos, casamentos, óbitos e emancipações.",
+          "Comprar e vender imóveis rurais e urbanos.",
+          "Prestar assessoria jurídica gratuita em audiências.",
+          "Cobrar faturas em atraso de lojas de departamento."
+        ],
+        correct: 0,
+        explanation: "É no Registro Civil de Pessoas Naturais que se registram os principais atos da vida civil do cidadão."
+      },
+      {
+        question: "20. Qual atitude do estudante do PROEJA é fundamental para o sucesso no estágio técnico?",
+        options: [
+          "Comprometimento, ética, boa comunicação e vontade constante de aprender.",
+          "Evitar tirar dúvidas com o supervisor para não parecer inseguro.",
+          "Realizar apenas as tarefas obrigatórias sem demonstrar iniciativa.",
+          "Utilizar o celular para assuntos pessoais durante o atendimento ao público."
+        ],
+        correct: 0,
+        explanation: "A postura ética, a responsabilidade e o interesse prático abrem portas para o crescimento profissional."
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    let selectedAnswers = Array(questions.length).fill(null);
+
+    function updateQuestion() {
+      const q = questions[currentQuestionIndex];
+      document.getElementById("counter-badge").innerText = `${currentQuestionIndex + 1} / ${questions.length}`;
+      document.getElementById("progress-bar").style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+      
+      document.getElementById("question-text").innerText = q.question;
+
+      const container = document.getElementById("options-container");
+      container.innerHTML = "";
+
+      const currentSelected = selectedAnswers[currentQuestionIndex];
+
+      q.options.forEach((optText, index) => {
+        const btn = document.createElement("button");
+        btn.className = "w-full text-left p-3.5 sm:p-4 rounded-xl border text-sm sm:text-base transition-all flex items-start gap-3 cursor-pointer";
+        
+        let borderStyle = "border-slate-200 hover:border-indigo-300 hover:bg-slate-50 text-slate-700 bg-white";
+        
+        if (currentSelected !== null) {
+          if (index === q.correct) {
+            borderStyle = "border-emerald-500 bg-emerald-50 text-emerald-900 font-medium";
+          } else if (index === currentSelected) {
+            borderStyle = "border-rose-400 bg-rose-50 text-rose-900";
+          } else {
+            borderStyle = "border-slate-100 bg-slate-50 text-slate-400 opacity-60";
+          }
+        }
+
+        btn.className += " " + borderStyle;
+        btn.onclick = () => selectOption(index);
+
+        const letterBadge = document.createElement("span");
+        letterBadge.className = `inline-flex items-center justify-center w-6 h-6 rounded-lg text-xs font-bold shrink-0 ${
+          currentSelected !== null && index === q.correct 
+            ? 'bg-emerald-600 text-white' 
+            : currentSelected === index 
+              ? 'bg-rose-500 text-white' 
+              : 'bg-slate-100 text-slate-600'
+        }`;
+        letterBadge.innerText = String.fromCharCode(65 + index);
+
+        const textSpan = document.createElement("span");
+        textSpan.className = "flex-grow pt-0.5";
+        textSpan.innerText = optText;
+
+        btn.appendChild(letterBadge);
+        btn.appendChild(textSpan);
+        container.appendChild(btn);
+      });
+
+      const expBox = document.getElementById("explanation-box");
+      if (currentSelected !== null) {
+        expBox.classList.remove("hidden");
+        if (currentSelected === q.correct) {
+          expBox.className = "p-4 rounded-xl text-sm leading-relaxed mb-6 bg-emerald-50 border-emerald-200 text-emerald-800";
+          expBox.innerHTML = `<strong>Resposta Correta!</strong> ${q.explanation}`;
+        } else {
+          expBox.className = "p-4 rounded-xl text-sm leading-relaxed mb-6 bg-amber-50 border-amber-200 text-amber-900";
+          expBox.innerHTML = `<strong>Atenção:</strong> A alternativa correta é a letra <strong>${String.fromCharCode(65 + q.correct)}</strong>.<br><span class="mt-1 block">${q.explanation}</span>`;
+        }
+      } else {
+        expBox.classList.add("hidden");
+      }
+
+      document.getElementById("prev-btn").disabled = currentQuestionIndex === 0;
+      
+      const nextBtn = document.getElementById("next-btn");
+      if (currentQuestionIndex === questions.length - 1) {
+        nextBtn.innerText = "Ver Nota e Resultado 🏆";
+        nextBtn.className = "px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-all";
+      } else {
+        nextBtn.innerText = "Avançar →";
+        nextBtn.className = "px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm transition-all";
+      }
+    }
+
+    function selectOption(index) {
+      if (selectedAnswers[currentQuestionIndex] === null) {
+        selectedAnswers[currentQuestionIndex] = index;
+        updateQuestion();
+      }
+    }
+
+    function nextQuestion() {
+      if (currentQuestionIndex < questions.length - 1) {
+        currentQuestionIndex++;
+        updateQuestion();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        showResults();
+      }
+    }
+
+    function prevQuestion() {
+      if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        updateQuestion();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function showResults() {
+      document.getElementById("quiz-card").classList.add("hidden");
+      document.getElementById("counter-badge").innerText = "Fim do Quiz";
+      document.getElementById("progress-bar").style.width = "100%";
+
+      let score = 0;
+      selectedAnswers.forEach((ans, idx) => {
+        if (ans === questions[idx].correct) score++;
+      });
+
+      // Cálculo da Nota de 0,0 a 10,0
+      const notaCalculada = ((score / questions.length) * 10).toFixed(1).replace('.', ',');
+      document.getElementById("final-grade").innerText = `Nota: ${notaCalculada} / 10,0`;
+      document.getElementById("final-score").innerText = `Acertos: ${score} de ${questions.length} questões`;
+
+      let feedback = "";
+      if (score >= 18) {
+        feedback = "Excelente aproveitamento! O estudante demonstrou domínio completo dos conceitos e rotinas práticas do curso técnico em Serviços Jurídicos.";
+      } else if (score >= 14) {
+        feedback = "Bom desempenho! O estudante compreendeu os aspectos centrais das rotinas cartorárias, da legislação e do estágio supervisionado.";
+      } else if (score >= 10) {
+        feedback = "Aproveitamento regular. Recomenda-se a revisão dos tópicos errados para consolidar o aprendizado prático exigido no estágio.";
+      } else {
+        feedback = "Aproveitamento insuficiente. É essencial retomar a leitura dos materiais de apoio e esclarecer dúvidas com o docente orientador.";
+      }
+
+      document.getElementById("final-feedback").innerText = feedback;
+      document.getElementById("result-card").classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function restartQuiz() {
+      currentQuestionIndex = 0;
+      selectedAnswers = Array(questions.length).fill(null);
+      document.getElementById("result-card").classList.add("hidden");
+      document.getElementById("quiz-card").classList.remove("hidden");
+      updateQuestion();
+    }
+
+    updateQuestion();
+  </script>
+</body>
+</html>
